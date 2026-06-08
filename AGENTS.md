@@ -1,5 +1,11 @@
 # AGENTS.md
 
+## Current patch source
+
+The active task is always defined by `CODEX_TASK_PROMPT.md`.
+
+Do not assume that the current patch is still v0.1. Before starting work, read the current `CODEX_TASK_PROMPT.md` and follow only that active task.
+
 ## Project role
 
 This repository is a scientific computing prototype for galaxy rotation curve analysis and discriminant galaxy selection.

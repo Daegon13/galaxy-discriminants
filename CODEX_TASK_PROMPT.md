@@ -1,287 +1,275 @@
-# Codex Task Prompt — v0.1 Skeleton reproducible con datos mock
+# Codex Task Prompt — v0.2a Infraestructura de modelos físicos
 
 ## Rol
 
-Actúa como ingeniero de software científico trabajando sobre un repositorio Python ya inicializado. Tu tarea es implementar únicamente el patch `v0.1 — Skeleton reproducible con datos mock`.
+Actúa como ingeniero de software científico trabajando sobre el repositorio `galaxy-discriminants`.
 
-No debes avanzar a modelos físicos reales ni análisis científico completo.
+Tu tarea es implementar únicamente el patch:
+
+`v0.2a — Infraestructura de modelos físicos`
+
+No debes implementar todavía fórmulas físicas reales de MOND/RAR, NFW o Burkert. Este patch prepara la arquitectura para que esos modelos puedan implementarse en un patch posterior.
 
 ## Contexto del proyecto
 
-El proyecto se llama `galaxy-discriminants`.
+El proyecto busca construir una herramienta computacional reproducible para estudiar curvas de rotación galáctica y seleccionar galaxias con mayor utilidad discriminante entre familias de modelos.
 
-Objetivo general:
+La versión `v0.1` ya implementó:
 
-Construir una herramienta computacional reproducible para identificar qué galaxias tienen mayor poder discriminante al comparar familias de modelos de curvas de rotación galáctica, incluyendo modelos bariónicos/newtonianos, MOND/RAR, halos de materia oscura y posibles modelos híbridos futuros.
+* generación reproducible de datos mock;
+* `MockGalaxy`;
+* modelo placeholder de velocidad constante;
+* pipeline mock ejecutable;
+* exportación CSV/JSON/PNG en `outputs/`;
+* visualización básica;
+* tests;
+* README actualizado.
 
-La primera versión no debe producir resultados científicos reales. Debe crear una base técnica profesional que permita correr un pipeline mínimo con datos sintéticos/mock.
-
-## Estado actual esperado del repositorio
-
-El repositorio ya fue inicializado con:
-
-- Python 3.12.
-- `uv`.
-- `pyproject.toml`.
-- `uv.lock`.
-- estructura `src/`.
-- paquete `galaxy_discriminants`.
-- `ruff`.
-- `pytest`.
-- carpetas base:
-  - `data/mock`;
-  - `data/raw`;
-  - `data/processed`;
-  - `outputs`;
-  - `reports`.
-- documentación base:
-  - `PROJECT_MASTERPLAN.md`;
-  - `PATCH_ROADMAP.md`;
-  - `CODEX_TASK_PROMPT.md`;
-  - `DECISIONS_LOG.md`;
-  - `README.md`.
-
-Comandos ya verificados antes de este patch:
-
-```powershell
-uv sync
-uv run python --version
-uv run ruff check .
-```
-
-Python esperado:
-
-```text
-Python 3.12.x
-```
+La versión `v0.2a` debe fortalecer la infraestructura para futuros modelos físicos sin introducir física real todavía.
 
 ## Instrucciones generales
 
 Antes de modificar archivos:
 
-1. Inspecciona el repositorio actual.
-2. Revisa `pyproject.toml`.
-3. Revisa la estructura existente.
-4. No asumas que el repo está vacío.
-5. No reinicialices Git.
-6. No borres `uv.lock`.
-7. No cambies la versión de Python salvo que haya una razón clara.
-8. No conviertas el proyecto en app web.
-9. No agregues frameworks web.
-10. No descargues datasets reales.
+1. Lee `AGENTS.md`.
+2. Lee `PROJECT_MASTERPLAN.md`.
+3. Lee `PATCH_ROADMAP.md`.
+4. Lee `DECISIONS_LOG.md`.
+5. Inspecciona el código existente.
+6. Revisa `pyproject.toml`.
+7. Revisa los tests actuales.
 
-## Alcance exacto de v0.1
+No asumas que el repo está vacío.
 
-Implementar un skeleton reproducible con datos mock.
+No borres ni reescribas la implementación v0.1.
 
-Debe incluir:
+## Alcance exacto de v0.2a
 
-- estructura mínima de módulos;
-- datos sintéticos/mock claramente marcados;
-- modelo placeholder o mínimo no científico;
-- pipeline simple ejecutable;
-- visualización básica;
-- tests mínimos;
-- README inicial actualizado;
-- comandos de ejecución documentados.
+Implementar infraestructura para modelos físicos futuros.
 
-## Qué debes implementar
+Este patch debe incluir:
 
-### 1. Estructura de módulos
+* mejora de la interfaz común de modelos;
+* estructuras de datos para predicciones de curvas de rotación;
+* documentación explícita de unidades esperadas;
+* validaciones básicas de radios y velocidades;
+* placeholders nominales para familias futuras, si ayudan a preparar arquitectura;
+* tests de interfaz y validación;
+* documentación técnica de supuestos de modelos.
 
-Crear o completar una estructura similar a:
+Este patch no debe implementar fórmulas físicas reales todavía.
+
+## Objetivos técnicos
+
+### 1. Mejorar interfaz común de modelos
+
+Revisar `src/galaxy_discriminants/models/base.py`.
+
+Crear o mejorar una abstracción común para modelos de curvas de rotación.
+
+La interfaz debe permitir que modelos futuros:
+
+* tengan un nombre legible;
+* declaren si son físicos o placeholder;
+* reciban radios en kpc;
+* devuelvan velocidades en km/s;
+* puedan ser usados de forma común por el pipeline futuro.
+
+Una posible dirección, no obligatoria:
 
 ```text
-src/galaxy_discriminants/
-    __init__.py
-    data/
-        __init__.py
-        mock.py
-    models/
-        __init__.py
-        base.py
-        placeholders.py
-    visualization/
-        __init__.py
-        rotation_curves.py
-    pipeline.py
+RotationCurveModel:
+    name: str
+    is_physical: bool
+    predict(radius_kpc) -> ModelPrediction
 ```
 
-Puedes ajustar nombres si hay una razón técnica, pero mantén una arquitectura simple y clara.
+No es obligatorio usar exactamente esta API si hay una alternativa mejor, pero la decisión debe explicarse en el summary.
 
-### 2. Datos mock
+### 2. Crear estructura para predicciones
 
-Crear una forma reproducible de generar galaxias sintéticas.
+Agregar una estructura clara para resultados de predicción.
 
-Requisitos:
+Debe incluir, como mínimo:
 
-- Los datos deben estar claramente identificados como mock/sintéticos.
-- Deben incluir:
-  - nombre de galaxia mock;
-  - radios;
-  - velocidades observadas simuladas;
-  - incertidumbres;
-  - opcional: velocidad verdadera usada para generar el mock.
-- Debe usarse una semilla fija o parametrizable.
-- No debe descargarse ningún dataset externo.
-- No debe mencionarse que estos datos representan SPARC ni ningún catálogo real.
+* nombre del modelo;
+* radios usados;
+* velocidades predichas;
+* unidades;
+* indicador de si la predicción proviene de un placeholder o modelo físico.
 
-Ejemplo conceptual, no obligatorio:
+Ejemplo conceptual:
 
 ```text
-MockGalaxy:
-    name
+ModelPrediction:
+    model_name
     radius_kpc
     velocity_kms
-    velocity_error_kms
+    is_physical_model
+    notes
 ```
 
-### 3. Modelo placeholder o mínimo
+Debe ser simple y testeable.
 
-Crear una interfaz simple de modelo.
+### 3. Validación de entradas
 
-Requisitos:
+Agregar funciones de validación para arrays científicos básicos.
 
-- Debe existir una clase, protocolo o función base que represente un modelo de curva de rotación.
-- Debe existir al menos un modelo placeholder que devuelva una curva predicha simple.
-- El modelo placeholder debe estar documentado como no científico.
-- No implementar todavía MOND/RAR real.
-- No implementar todavía NFW real.
-- No implementar todavía Burkert real.
+Validar al menos:
 
-### 4. Pipeline simple
+* radios no vacíos;
+* radios finitos;
+* radios positivos;
+* radios idealmente crecientes cuando corresponda;
+* velocidades finitas;
+* shapes compatibles entre radio y velocidad.
 
-Crear un pipeline mínimo que:
-
-1. Genere o cargue datos mock.
-2. Ejecute un modelo placeholder.
-3. Calcule una salida básica.
-4. Genere una visualización simple o prepare datos para ella.
-5. Exporte algún resultado mínimo a `outputs/`.
-
-Puede ser una función pública como:
+Ubicación sugerida:
 
 ```text
-run_mock_pipeline()
+src/galaxy_discriminants/validation.py
 ```
 
-o un módulo ejecutable con:
+o
+
+```text
+src/galaxy_discriminants/models/validation.py
+```
+
+Elegir una ubicación clara y justificarla en el summary.
+
+### 4. Documentación de unidades
+
+Crear documentación breve sobre unidades internas.
+
+Archivo sugerido:
+
+```text
+docs/model_assumptions.md
+```
+
+Debe explicar:
+
+* radios en kpc;
+* velocidades en km/s;
+* datos mock no científicos;
+* modelos físicos futuros pendientes de verificación;
+* MOND/RAR, NFW y Burkert todavía no implementados;
+* fórmulas y parametrizaciones pendientes de revisión científica.
+
+No inventes citas, papers ni fórmulas.
+
+### 5. Placeholders nominales, si corresponde
+
+Puedes crear clases placeholder nominales para modelos futuros solo si ayudan a fijar arquitectura.
+
+Por ejemplo:
+
+```text
+BaryonicPlaceholderModel
+MondRARPlaceholderModel
+NFWPlaceholderModel
+BurkertPlaceholderModel
+```
+
+Pero si las creas:
+
+* deben estar marcadas claramente como placeholders;
+* no deben simular física real;
+* no deben sugerir resultados científicos;
+* deben lanzar `NotImplementedError` o devolver predicciones triviales claramente no científicas, según lo que sea más coherente con la arquitectura.
+
+Preferencia: evitar predicciones falsas de modelos físicos. Es aceptable crear stubs que lancen `NotImplementedError`.
+
+### 6. Mantener compatibilidad con v0.1
+
+El pipeline existente debe seguir funcionando:
 
 ```powershell
 uv run python -m galaxy_discriminants.pipeline
 ```
 
-Preferencia: dejar una forma simple y documentada de ejecución desde terminal.
+Los outputs de v0.1 deben seguir generándose.
 
-### 5. Visualización básica
+El modelo `ConstantVelocityModel` puede adaptarse a la nueva interfaz, pero debe seguir siendo no científico.
 
-Crear una función de visualización para una curva de rotación mock.
+### 7. Tests
 
-Requisitos:
+Agregar o actualizar tests para:
 
-- Usar `matplotlib`.
-- Mostrar datos observados simulados con errores si es razonable.
-- Mostrar curva predicha placeholder.
-- Guardar imagen en `outputs/`.
-- El gráfico debe estar claramente etiquetado como mock/synthetic.
-- No debe sugerir resultados científicos reales.
+* interfaz común de modelos;
+* estructura `ModelPrediction`;
+* validación de radios;
+* validación de shapes incompatibles;
+* comportamiento del placeholder existente;
+* compatibilidad del pipeline v0.1.
 
-### 6. Tests mínimos
-
-Agregar tests con `pytest`.
-
-Debe cubrir al menos:
-
-- generación de datos mock;
-- formas/dimensiones esperadas;
-- incertidumbres positivas;
-- salida del modelo placeholder;
-- ejecución del pipeline mínimo;
-- creación de archivo de salida si aplica.
-
-Archivos esperados:
+Tests sugeridos:
 
 ```text
-tests/test_mock_data.py
+tests/test_model_interface.py
+tests/test_validation.py
 tests/test_placeholder_models.py
 tests/test_pipeline.py
 ```
 
-Puedes ajustar nombres si mantienes claridad.
-
-### 7. README inicial
-
-Actualizar `README.md` con:
-
-- descripción sobria del proyecto;
-- advertencia de que v0.1 usa datos mock;
-- instalación;
-- ejecución;
-- tests;
-- lint;
-- estructura del proyecto;
-- límites actuales;
-- próximos pasos.
-
-Debe incluir comandos:
-
-```powershell
-uv sync
-uv run python --version
-uv run pytest
-uv run ruff check .
-```
-
-Y si implementas módulo ejecutable:
-
-```powershell
-uv run python -m galaxy_discriminants.pipeline
-```
+Puedes ajustar nombres si mantiene claridad.
 
 ## Restricciones científicas
 
-No hacer ninguna de estas cosas:
+No implementar todavía:
 
-- No afirmar que el proyecto resuelve materia oscura.
-- No afirmar que MOND, RAR, NFW o Burkert ganan.
-- No implementar conclusiones científicas.
-- No descargar SPARC.
-- No inventar rutas, APIs ni disponibilidad de datasets.
-- No usar datos reales.
-- No agregar IA.
-- No agregar N-body.
-- No agregar simulaciones cosmológicas.
-- No implementar MCMC.
-- No avanzar a v0.2 sin aprobación.
+* MOND/RAR real;
+* NFW real;
+* Burkert real;
+* Einasto;
+* modelos híbridos;
+* fitting;
+* AIC/BIC;
+* ranking discriminante;
+* análisis científico real;
+* dataset SPARC;
+* BIG-SPARC;
+* MCMC;
+* simulaciones N-body;
+* IA/ML.
+
+No afirmar que ningún modelo es correcto, incorrecto, mejor o peor.
+
+No inventar fórmulas ni referencias.
+
+Si algo requiere verificación científica, marcarlo como:
+
+`Pendiente de verificación`.
 
 ## Restricciones técnicas
 
-- Mantener Python 3.12.
-- Mantener `uv`.
-- Mantener estructura `src/`.
-- Mantener imports limpios.
-- Evitar dependencias nuevas salvo que sean estrictamente necesarias.
-- Si agregas una dependencia, justifícala en el summary.
-- No romper `ruff`.
-- No crear archivos grandes.
-- No commitear datasets reales.
-- No modificar documentación estratégica salvo README, a menos que sea estrictamente necesario.
-- No borrar los archivos Markdown existentes.
+* Mantener Python 3.12.
+* Mantener `uv`.
+* No eliminar `uv.lock`.
+* No cambiar el nombre del paquete.
+* No agregar dependencias salvo necesidad estricta.
+* Si agregas una dependencia, justificarla.
+* No convertir el proyecto en app web.
+* No versionar outputs generados.
+* No tocar datasets reales.
+* No hacer refactors grandes fuera del alcance.
 
 ## Criterios de aceptación
 
-El patch se considera aceptable si:
+El patch es aceptable si:
 
-- [ ] `uv sync` pasa.
-- [ ] `uv run python --version` usa Python 3.12.
-- [ ] `uv run pytest` pasa.
-- [ ] `uv run ruff check .` pasa.
-- [ ] Existe pipeline mock ejecutable.
-- [ ] Se genera al menos una salida en `outputs/` o una salida verificable.
-- [ ] Los datos mock están claramente marcados.
-- [ ] El README explica cómo ejecutar el proyecto.
-- [ ] No se descargaron datasets reales.
-- [ ] No se implementaron modelos físicos reales fuera de alcance.
+* [ ] El pipeline v0.1 sigue funcionando.
+* [ ] Existe una interfaz de modelos más clara y extensible.
+* [ ] Existe una estructura de predicción testeada.
+* [ ] Existen validaciones básicas de arrays científicos.
+* [ ] Las unidades internas están documentadas.
+* [ ] MOND/RAR, NFW y Burkert siguen sin implementación física real.
+* [ ] Los tests pasan.
+* [ ] Ruff pasa.
+* [ ] Mypy pasa si ya estaba configurado.
+* [ ] El README no promete resultados científicos reales.
+* [ ] `docs/model_assumptions.md` documenta supuestos y pendientes.
 
 ## Comandos que debes ejecutar
 
@@ -289,18 +277,15 @@ Ejecuta como mínimo:
 
 ```powershell
 uv sync
+uv run python --version
 uv run pytest
+uv run ruff format --check .
 uv run ruff check .
+uv run mypy src tests
+uv run python -m galaxy_discriminants.pipeline
+git diff --check
+git status --short --branch
 ```
-
-Si implementas formato automático con Ruff, puedes usar:
-
-```powershell
-uv run ruff format .
-uv run ruff check . --fix
-```
-
-Pero no ocultes cambios grandes bajo auto-fix sin explicar.
 
 ## Summary obligatorio al finalizar
 
@@ -312,37 +297,43 @@ Lista de archivos creados o modificados.
 
 ### Qué implementaste
 
-Explicación breve del skeleton v0.1.
+Explica la infraestructura agregada para modelos físicos futuros.
 
 ### Qué NO implementaste
 
-Confirmar explícitamente que no implementaste:
+Confirma explícitamente que no implementaste:
 
-- SPARC;
-- MOND/RAR real;
-- NFW real;
-- Burkert real;
-- ranking discriminante real;
-- análisis científico real.
+* MOND/RAR real;
+* NFW real;
+* Burkert real;
+* SPARC;
+* fitting;
+* ranking discriminante;
+* análisis científico real.
 
 ### Tests ejecutados
 
-Indicar comandos y resultado.
+Indica comandos y resultado.
 
 ### Decisiones tomadas
 
-Indicar cualquier decisión técnica relevante.
+Explica decisiones de arquitectura:
+
+* ubicación de validaciones;
+* forma de `ModelPrediction`;
+* diseño de la interfaz común;
+* tratamiento de placeholders.
 
 ### Riesgos o pendientes
 
-Indicar posibles mejoras, deuda técnica o próximos pasos.
+Indica qué queda pendiente para v0.2b.
 
 ### Próximo paso sugerido
 
-Sugerir que el siguiente patch sea v0.2, pero no implementarlo.
+Sugerir `v0.2b — Modelos físicos iniciales`, pero no implementarlo.
 
 ## Importante
 
-No avances más allá de v0.1.
+No avances más allá de v0.2a.
 
-El objetivo de este patch es que el repositorio quede técnicamente sólido, reproducible y listo para implementar modelos físicos iniciales en una etapa posterior.
+Este patch debe preparar el terreno para implementar modelos físicos reales en una etapa posterior, sin introducir todavía fórmulas científicas que no hayan sido verificadas.
