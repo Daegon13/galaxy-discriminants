@@ -16,7 +16,7 @@ El repositorio ya fue inicializado como paquete Python reproducible con:
 - `pyproject.toml`
 - `uv.lock`
 
-La primera etapa de implementación será `v0.1 — Skeleton reproducible con datos mock`.
+La implementación actual corresponde a `v0.2a — Infraestructura de modelos físicos`. Conserva el pipeline mock de v0.1 y prepara interfaces para modelos futuros sin implementar fórmulas físicas reales.
 
 ## Objetivo
 
@@ -40,29 +40,23 @@ SPARC y otros catálogos reales se tratan como candidatos futuros. Su disponibil
 
 ## Alcance actual
 
-La versión inicial debe trabajar solo con datos sintéticos/mock.
+En `v0.2a`, el proyecto incluye:
 
-En `v0.1`, el proyecto debe incluir:
+- datos mock claramente marcados y reproducibles;
+- pipeline ejecutable, exportación y visualización de v0.1;
+- interfaz común para modelos de curvas de rotación;
+- predicciones validadas con radios en `kpc` y velocidades en `km/s`;
+- validaciones básicas para arreglos científicos;
+- stubs nominales de MOND/RAR, NFW y Burkert que lanzan `NotImplementedError`;
+- tests de interfaz, validación, placeholders y compatibilidad del pipeline.
 
-- datos mock claramente marcados;
-- modelos placeholder o mínimos;
-- pipeline ejecutable simple;
-- visualización básica;
-- tests mínimos;
-- documentación de instalación y ejecución.
+En `v0.2a`, el proyecto todavía no incluye:
 
-En `v0.1`, el proyecto no debe incluir:
-
-- descarga de datasets reales;
+- descarga o uso de datasets reales como SPARC o BIG-SPARC;
 - análisis científico real;
-- implementación real de MOND/RAR;
-- implementación real de NFW;
-- implementación real de Burkert;
-- ranking discriminante real;
-- MCMC;
-- simulaciones N-body;
-- dashboard web;
-- IA/ML.
+- fórmulas físicas reales de MOND/RAR, NFW o Burkert;
+- fitting, AIC/BIC o ranking discriminante;
+- MCMC, simulaciones N-body, dashboard web o IA/ML.
 
 ## Instalación
 
@@ -106,13 +100,13 @@ uv run ruff format .
 
 ## Ejecución del pipeline
 
-Después de implementar `v0.1`, el pipeline mock debería poder ejecutarse con un comando similar a:
+El pipeline mock compatible con v0.1 se ejecuta con:
 
 ```powershell
 uv run python -m galaxy_discriminants.pipeline
 ```
 
-El comando exacto debe mantenerse documentado cuando el pipeline exista.
+Las salidas generadas se guardan en `outputs/` y no se versionan. Son artefactos sintéticos para comprobar el software, no resultados científicos.
 
 ## Estructura esperada del repositorio
 
@@ -141,6 +135,7 @@ galaxy-discriminants/
 ## Documentación principal
 
 - `PROJECT_MASTERPLAN.md`: visión científica, técnica y metodológica.
+- `docs/model_assumptions.md`: supuestos de unidades, validación e infraestructura de modelos.
 - `PATCH_ROADMAP.md`: roadmap por versiones incrementales.
 - `CODEX_TASK_PROMPT.md`: prompt activo para Codex.
 - `DECISIONS_LOG.md`: decisiones tomadas y pendientes de verificación.
