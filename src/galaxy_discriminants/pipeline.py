@@ -34,7 +34,8 @@ def run_mock_pipeline(
     galaxy = generate_mock_galaxy(seed=seed)
     model = ConstantVelocityModel(velocity_kms=float(np.mean(galaxy.velocity_kms)))
     prediction = model.predict(galaxy.radius_kpc)
-    rmse = float(np.sqrt(np.mean((galaxy.velocity_kms - prediction) ** 2)))
+    predicted_velocity_kms = prediction.velocity_kms
+    rmse = float(np.sqrt(np.mean((galaxy.velocity_kms - predicted_velocity_kms) ** 2)))
 
     data_path = output_dir / "mock_rotation_curve.csv"
     with data_path.open("w", newline="", encoding="utf-8") as output_file:
@@ -52,7 +53,7 @@ def run_mock_pipeline(
                 galaxy.radius_kpc,
                 galaxy.velocity_kms,
                 galaxy.velocity_error_kms,
-                prediction,
+                predicted_velocity_kms,
                 strict=True,
             )
         )
@@ -61,7 +62,7 @@ def run_mock_pipeline(
     metrics = {
         "data_kind": "mock/synthetic",
         "galaxy_name": galaxy.name,
-        "model": "constant-velocity non-scientific placeholder",
+        "model": prediction.model_name,
         "n_points": len(galaxy.radius_kpc),
         "root_mean_square_error_kms": rmse,
         "seed": seed,
@@ -70,7 +71,7 @@ def run_mock_pipeline(
 
     figure_path = plot_mock_rotation_curve(
         galaxy,
-        prediction,
+        predicted_velocity_kms,
         output_dir / "mock_rotation_curve.png",
     )
     return PipelineOutputs(data_path, metrics_path, figure_path, rmse)
