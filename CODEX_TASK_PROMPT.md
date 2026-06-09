@@ -1,4 +1,4 @@
-# Codex Task Prompt — v0.2a Infraestructura de modelos físicos
+# Codex Task Prompt — v0.2b-1 Modelo bariónico/newtoniano mínimo
 
 ## Rol
 
@@ -6,15 +6,21 @@ Actúa como ingeniero de software científico trabajando sobre el repositorio `g
 
 Tu tarea es implementar únicamente el patch:
 
-`v0.2a — Infraestructura de modelos físicos`
+`v0.2b-1 — Modelo bariónico/newtoniano mínimo`
 
-No debes implementar todavía fórmulas físicas reales de MOND/RAR, NFW o Burkert. Este patch prepara la arquitectura para que esos modelos puedan implementarse en un patch posterior.
+Este patch debe agregar un primer modelo físico controlado: un modelo bariónico/newtoniano mínimo basado en contribuciones de velocidad precomputadas.
+
+No debes implementar todavía MOND/RAR, NFW, Burkert, fitting, ranking discriminante ni datasets reales.
 
 ## Contexto del proyecto
 
 El proyecto busca construir una herramienta computacional reproducible para estudiar curvas de rotación galáctica y seleccionar galaxias con mayor utilidad discriminante entre familias de modelos.
 
-La versión `v0.1` ya implementó:
+Versiones anteriores:
+
+### v0.1
+
+Ya implementó:
 
 * generación reproducible de datos mock;
 * `MockGalaxy`;
@@ -25,7 +31,19 @@ La versión `v0.1` ya implementó:
 * tests;
 * README actualizado.
 
-La versión `v0.2a` debe fortalecer la infraestructura para futuros modelos físicos sin introducir física real todavía.
+### v0.2a
+
+Ya implementó:
+
+* `ModelPrediction`;
+* interfaz extensible `RotationCurveModel`;
+* validaciones reutilizables en `galaxy_discriminants.validation`;
+* stubs nominales para MOND/RAR, NFW y Burkert;
+* documentación de unidades y supuestos en `docs/model_assumptions.md`;
+* compatibilidad del pipeline v0.1;
+* tests ampliados.
+
+Este patch debe continuar sobre esa base sin romper compatibilidad.
 
 ## Instrucciones generales
 
@@ -35,153 +53,212 @@ Antes de modificar archivos:
 2. Lee `PROJECT_MASTERPLAN.md`.
 3. Lee `PATCH_ROADMAP.md`.
 4. Lee `DECISIONS_LOG.md`.
-5. Inspecciona el código existente.
-6. Revisa `pyproject.toml`.
-7. Revisa los tests actuales.
+5. Lee `docs/model_assumptions.md`.
+6. Inspecciona `src/galaxy_discriminants/models/base.py`.
+7. Inspecciona `src/galaxy_discriminants/validation.py`.
+8. Inspecciona `src/galaxy_discriminants/models/placeholders.py`.
+9. Inspecciona `src/galaxy_discriminants/pipeline.py`.
+10. Revisa los tests existentes.
 
 No asumas que el repo está vacío.
 
-No borres ni reescribas la implementación v0.1.
+No borres ni reescribas la implementación v0.1/v0.2a.
 
-## Alcance exacto de v0.2a
+No cambies la arquitectura sin justificarlo.
 
-Implementar infraestructura para modelos físicos futuros.
+## Alcance exacto de v0.2b-1
 
-Este patch debe incluir:
+Implementar un modelo bariónico/newtoniano mínimo que combine contribuciones de velocidad precomputadas.
 
-* mejora de la interfaz común de modelos;
-* estructuras de datos para predicciones de curvas de rotación;
-* documentación explícita de unidades esperadas;
-* validaciones básicas de radios y velocidades;
-* placeholders nominales para familias futuras, si ayudan a preparar arquitectura;
-* tests de interfaz y validación;
-* documentación técnica de supuestos de modelos.
-
-Este patch no debe implementar fórmulas físicas reales todavía.
-
-## Objetivos técnicos
-
-### 1. Mejorar interfaz común de modelos
-
-Revisar `src/galaxy_discriminants/models/base.py`.
-
-Crear o mejorar una abstracción común para modelos de curvas de rotación.
-
-La interfaz debe permitir que modelos futuros:
-
-* tengan un nombre legible;
-* declaren si son físicos o placeholder;
-* reciban radios en kpc;
-* devuelvan velocidades en km/s;
-* puedan ser usados de forma común por el pipeline futuro.
-
-Una posible dirección, no obligatoria:
+El modelo debe representar una operación básica:
 
 ```text
-RotationCurveModel:
-    name: str
-    is_physical: bool
-    predict(radius_kpc) -> ModelPrediction
+v_bar(r) = sqrt(v_component_1(r)^2 + v_component_2(r)^2 + ...)
 ```
 
-No es obligatorio usar exactamente esta API si hay una alternativa mejor, pero la decisión debe explicarse en el summary.
+Este modelo no debe derivar velocidades desde masa, luminosidad, fotometría, potencial gravitatorio ni datos reales.
 
-### 2. Crear estructura para predicciones
+Debe aceptar componentes ya precomputadas, por ejemplo:
 
-Agregar una estructura clara para resultados de predicción.
+* gas;
+* disk;
+* bulge;
+* stellar_disk;
+* stellar_bulge;
+* u otros nombres explícitos.
 
-Debe incluir, como mínimo:
+La elección exacta de nombres debe ser flexible, pero las unidades deben estar documentadas como km/s.
 
-* nombre del modelo;
-* radios usados;
-* velocidades predichas;
-* unidades;
-* indicador de si la predicción proviene de un placeholder o modelo físico.
+## Qué debes implementar
+
+### 1. Modelo bariónico mínimo
+
+Crear un archivo nuevo sugerido:
+
+```text
+src/galaxy_discriminants/models/baryonic.py
+```
+
+Implementar una clase similar a:
+
+```text
+BaryonicRotationModel
+```
+
+Requisitos:
+
+* Debe implementar `RotationCurveModel`.
+* Debe devolver `ModelPrediction`.
+* Debe tener `name` legible.
+* Debe marcarse como modelo físico inicial o físico simplificado según la semántica existente de `is_physical`.
+* Debe recibir contribuciones bariónicas de velocidad precomputadas.
+* Debe combinar componentes mediante suma cuadrática.
+* Debe validar radios y velocidades.
+* Debe rechazar arrays con shapes incompatibles.
+* Debe rechazar radios inválidos.
+* Debe rechazar velocidades no finitas.
+* Debe rechazar velocidades negativas salvo que exista una justificación documentada. Para este patch, preferir no aceptar velocidades negativas.
+* Debe documentar que no deriva masas ni fotometría.
+
+Una API posible, no obligatoria:
+
+```text
+model = BaryonicRotationModel(
+    components={
+        "gas": gas_velocity_kms,
+        "disk": disk_velocity_kms,
+        "bulge": bulge_velocity_kms,
+    }
+)
+
+prediction = model.predict(radius_kpc)
+```
+
+Otra API aceptable:
+
+```text
+model = BaryonicRotationModel.from_components(...)
+```
+
+Elige la opción más simple y coherente con la arquitectura actual. Explica la decisión en el summary.
+
+### 2. Escalado opcional de componentes
+
+Puedes implementar factores de escala simples para componentes si se mantiene claro y testeable.
 
 Ejemplo conceptual:
 
 ```text
-ModelPrediction:
-    model_name
-    radius_kpc
-    velocity_kms
-    is_physical_model
-    notes
+v_bar = sqrt(
+    gas_scale * v_gas^2 +
+    disk_scale * v_disk^2 +
+    bulge_scale * v_bulge^2
+)
 ```
 
-Debe ser simple y testeable.
+Reglas:
 
-### 3. Validación de entradas
+* Los factores deben ser positivos.
+* El valor por defecto debe ser 1.0.
+* Deben estar documentados como factores numéricos simplificados.
+* No deben presentarse como ajuste físico real ni como masa-luz calibrada.
+* No implementar fitting de estos factores.
 
-Agregar funciones de validación para arrays científicos básicos.
+Si esto complica demasiado el patch, puedes omitir escalado y dejarlo como extensión futura. Explica la decisión.
 
-Validar al menos:
+### 3. Datos mock bariónicos
 
-* radios no vacíos;
-* radios finitos;
-* radios positivos;
-* radios idealmente crecientes cuando corresponda;
-* velocidades finitas;
-* shapes compatibles entre radio y velocidad.
+Extender los datos mock o agregar una utilidad separada para crear contribuciones bariónicas sintéticas.
 
-Ubicación sugerida:
+Opciones aceptables:
+
+* agregar campos opcionales a `MockGalaxy`;
+* crear una función nueva que genere componentes bariónicas sintéticas;
+* crear tests con arrays manuales sin modificar demasiado `MockGalaxy`.
+
+Requisitos:
+
+* No romper el pipeline v0.1.
+* No hacer que todos los datos mock dependan obligatoriamente de componentes bariónicas.
+* Marcar todo como sintético/mock.
+* No asociar estos datos con SPARC ni galaxias reales.
+
+Preferencia: mantener los componentes bariónicos como utilidad separada o como campos opcionales para evitar sobrecargar `MockGalaxy`.
+
+### 4. Exportación pública
+
+Actualizar:
 
 ```text
-src/galaxy_discriminants/validation.py
+src/galaxy_discriminants/models/__init__.py
 ```
 
-o
+para exportar el nuevo modelo bariónico si corresponde.
 
-```text
-src/galaxy_discriminants/models/validation.py
-```
+No eliminar exports existentes.
 
-Elegir una ubicación clara y justificarla en el summary.
+### 5. Documentación
 
-### 4. Documentación de unidades
-
-Crear documentación breve sobre unidades internas.
-
-Archivo sugerido:
+Actualizar:
 
 ```text
 docs/model_assumptions.md
 ```
 
-Debe explicar:
+Debe incluir una sección para el modelo bariónico/newtoniano mínimo.
 
-* radios en kpc;
-* velocidades en km/s;
-* datos mock no científicos;
-* modelos físicos futuros pendientes de verificación;
-* MOND/RAR, NFW y Burkert todavía no implementados;
-* fórmulas y parametrizaciones pendientes de revisión científica.
+Debe aclarar:
 
-No inventes citas, papers ni fórmulas.
+* usa radios en kpc;
+* usa velocidades en km/s;
+* combina contribuciones precomputadas mediante suma cuadrática;
+* no deriva masas;
+* no deriva luminosidades;
+* no calcula potenciales gravitatorios;
+* no usa datos reales;
+* no representa todavía una comparación científica completa;
+* factores de escala, si existen, no son fitting físico en este patch.
 
-### 5. Placeholders nominales, si corresponde
+Actualizar `README.md` solo si hace falta para reflejar que v0.2b-1 existe como modelo inicial, sin prometer resultados científicos.
 
-Puedes crear clases placeholder nominales para modelos futuros solo si ayudan a fijar arquitectura.
+### 6. Tests
 
-Por ejemplo:
+Agregar tests nuevos para el modelo bariónico.
+
+Archivo sugerido:
 
 ```text
-BaryonicPlaceholderModel
-MondRARPlaceholderModel
-NFWPlaceholderModel
-BurkertPlaceholderModel
+tests/test_baryonic_model.py
 ```
 
-Pero si las creas:
+Debe cubrir:
 
-* deben estar marcadas claramente como placeholders;
-* no deben simular física real;
-* no deben sugerir resultados científicos;
-* deben lanzar `NotImplementedError` o devolver predicciones triviales claramente no científicas, según lo que sea más coherente con la arquitectura.
+* predicción con un solo componente;
+* predicción con varios componentes;
+* resultado esperado de suma cuadrática;
+* shapes correctos;
+* nombre del modelo;
+* indicador `is_physical`;
+* unidades de `ModelPrediction`;
+* rechazo de radios inválidos;
+* rechazo de velocidades negativas;
+* rechazo de shapes incompatibles;
+* rechazo de componentes vacías;
+* compatibilidad con arrays numpy;
+* que el pipeline v0.1 siga funcionando.
 
-Preferencia: evitar predicciones falsas de modelos físicos. Es aceptable crear stubs que lancen `NotImplementedError`.
+Ejemplo matemático simple para test:
 
-### 6. Mantener compatibilidad con v0.1
+```text
+gas = [3, 4]
+disk = [4, 3]
+
+v_bar = sqrt(gas^2 + disk^2) = [5, 5]
+```
+
+Si implementas factores de escala, agregar tests específicos.
+
+### 7. Mantener compatibilidad
 
 El pipeline existente debe seguir funcionando:
 
@@ -189,31 +266,9 @@ El pipeline existente debe seguir funcionando:
 uv run python -m galaxy_discriminants.pipeline
 ```
 
-Los outputs de v0.1 deben seguir generándose.
+No es obligatorio integrar el modelo bariónico al pipeline mock principal en este patch, salvo que pueda hacerse sin aumentar complejidad.
 
-El modelo `ConstantVelocityModel` puede adaptarse a la nueva interfaz, pero debe seguir siendo no científico.
-
-### 7. Tests
-
-Agregar o actualizar tests para:
-
-* interfaz común de modelos;
-* estructura `ModelPrediction`;
-* validación de radios;
-* validación de shapes incompatibles;
-* comportamiento del placeholder existente;
-* compatibilidad del pipeline v0.1.
-
-Tests sugeridos:
-
-```text
-tests/test_model_interface.py
-tests/test_validation.py
-tests/test_placeholder_models.py
-tests/test_pipeline.py
-```
-
-Puedes ajustar nombres si mantiene claridad.
+Preferencia: mantener pipeline v0.1 estable y testear el nuevo modelo por separado.
 
 ## Restricciones científicas
 
@@ -225,6 +280,7 @@ No implementar todavía:
 * Einasto;
 * modelos híbridos;
 * fitting;
+* optimización de parámetros;
 * AIC/BIC;
 * ranking discriminante;
 * análisis científico real;
@@ -234,13 +290,17 @@ No implementar todavía:
 * simulaciones N-body;
 * IA/ML.
 
-No afirmar que ningún modelo es correcto, incorrecto, mejor o peor.
+No afirmar que el modelo bariónico explica curvas reales.
 
-No inventar fórmulas ni referencias.
+No afirmar que este modelo compara teorías físicas.
+
+No inventar fórmulas avanzadas ni referencias.
 
 Si algo requiere verificación científica, marcarlo como:
 
-`Pendiente de verificación`.
+```text
+Pendiente de verificación
+```
 
 ## Restricciones técnicas
 
@@ -254,22 +314,29 @@ Si algo requiere verificación científica, marcarlo como:
 * No versionar outputs generados.
 * No tocar datasets reales.
 * No hacer refactors grandes fuera del alcance.
+* No romper los stubs existentes de MOND/RAR, NFW y Burkert.
+* No convertir placeholders en modelos reales.
 
 ## Criterios de aceptación
 
 El patch es aceptable si:
 
+* [ ] Existe `BaryonicRotationModel` o equivalente.
+* [ ] El modelo implementa `RotationCurveModel`.
+* [ ] El modelo devuelve `ModelPrediction`.
+* [ ] La predicción combina componentes mediante suma cuadrática.
+* [ ] Las unidades internas siguen siendo kpc y km/s.
+* [ ] Hay tests para uno y varios componentes.
+* [ ] Hay tests para validaciones de errores.
 * [ ] El pipeline v0.1 sigue funcionando.
-* [ ] Existe una interfaz de modelos más clara y extensible.
-* [ ] Existe una estructura de predicción testeada.
-* [ ] Existen validaciones básicas de arrays científicos.
-* [ ] Las unidades internas están documentadas.
-* [ ] MOND/RAR, NFW y Burkert siguen sin implementación física real.
-* [ ] Los tests pasan.
+* [ ] MOND/RAR, NFW y Burkert siguen siendo stubs no implementados.
+* [ ] No se introduce fitting.
+* [ ] No se introduce dataset real.
+* [ ] No se agregan dependencias innecesarias.
+* [ ] La documentación explica límites y supuestos.
+* [ ] Tests pasan.
 * [ ] Ruff pasa.
-* [ ] Mypy pasa si ya estaba configurado.
-* [ ] El README no promete resultados científicos reales.
-* [ ] `docs/model_assumptions.md` documenta supuestos y pendientes.
+* [ ] Mypy pasa si ya estaba funcionando.
 
 ## Comandos que debes ejecutar
 
@@ -287,6 +354,18 @@ git diff --check
 git status --short --branch
 ```
 
+Si el entorno de Codex tiene problemas de red con `uv sync`, puedes usar temporalmente:
+
+```powershell
+uv run --no-sync pytest
+uv run --no-sync ruff format --check .
+uv run --no-sync ruff check .
+uv run --no-sync mypy src tests
+uv run --no-sync python -m galaxy_discriminants.pipeline
+```
+
+Pero debes reportar claramente que usaste `--no-sync` y explicar el motivo.
+
 ## Summary obligatorio al finalizar
 
 Al terminar, responde con un summary que incluya:
@@ -297,7 +376,7 @@ Lista de archivos creados o modificados.
 
 ### Qué implementaste
 
-Explica la infraestructura agregada para modelos físicos futuros.
+Explica cómo funciona el modelo bariónico/newtoniano mínimo.
 
 ### Qué NO implementaste
 
@@ -315,25 +394,31 @@ Confirma explícitamente que no implementaste:
 
 Indica comandos y resultado.
 
+Aclara si usaste comandos normales o `--no-sync`.
+
 ### Decisiones tomadas
 
 Explica decisiones de arquitectura:
 
-* ubicación de validaciones;
-* forma de `ModelPrediction`;
-* diseño de la interfaz común;
-* tratamiento de placeholders.
+* API del modelo bariónico;
+* tratamiento de componentes;
+* si implementaste o no factores de escala;
+* validaciones agregadas;
+* documentación actualizada.
 
 ### Riesgos o pendientes
 
-Indica qué queda pendiente para v0.2b.
+Indica qué queda pendiente para próximos patches.
 
 ### Próximo paso sugerido
 
-Sugerir `v0.2b — Modelos físicos iniciales`, pero no implementarlo.
+Sugerir uno de estos pasos, pero no implementarlo:
+
+* `v0.2b-2 — MOND/RAR simple`;
+* o `v0.2b-2 — preparación de aceleraciones bariónicas para MOND/RAR`.
 
 ## Importante
 
-No avances más allá de v0.2a.
+No avances más allá de v0.2b-1.
 
-Este patch debe preparar el terreno para implementar modelos físicos reales en una etapa posterior, sin introducir todavía fórmulas científicas que no hayan sido verificadas.
+Este patch debe implementar solo el modelo bariónico/newtoniano mínimo sobre contribuciones precomputadas, sin introducir todavía modelos alternativos ni fitting.
