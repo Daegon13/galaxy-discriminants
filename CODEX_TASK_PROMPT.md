@@ -1,4 +1,4 @@
-# Codex Task Prompt — v0.2b-1 Modelo bariónico/newtoniano mínimo
+# Codex Task Prompt — v0.2b-2 Utilidades de aceleración bariónica y preparación MOND/RAR
 
 ## Rol
 
@@ -6,11 +6,13 @@ Actúa como ingeniero de software científico trabajando sobre el repositorio `g
 
 Tu tarea es implementar únicamente el patch:
 
-`v0.2b-1 — Modelo bariónico/newtoniano mínimo`
+`v0.2b-2 — Utilidades de aceleración bariónica y preparación MOND/RAR`
 
-Este patch debe agregar un primer modelo físico controlado: un modelo bariónico/newtoniano mínimo basado en contribuciones de velocidad precomputadas.
+Este patch debe preparar la base matemática y técnica para implementar MOND/RAR en un patch posterior.
 
-No debes implementar todavía MOND/RAR, NFW, Burkert, fitting, ranking discriminante ni datasets reales.
+No debes implementar todavía un modelo MOND/RAR completo como `RotationCurveModel`.
+
+No debes implementar halos NFW, Burkert, fitting, ranking discriminante ni datasets reales.
 
 ## Contexto del proyecto
 
@@ -43,6 +45,16 @@ Ya implementó:
 * compatibilidad del pipeline v0.1;
 * tests ampliados.
 
+### v0.2b-1
+
+Ya implementó:
+
+* `BaryonicRotationModel`;
+* combinación de componentes bariónicas precomputadas mediante suma cuadrática;
+* validación de componentes;
+* tests del modelo bariónico;
+* documentación de límites y supuestos.
+
 Este patch debe continuar sobre esa base sin romper compatibilidad.
 
 ## Instrucciones generales
@@ -55,147 +67,155 @@ Antes de modificar archivos:
 4. Lee `DECISIONS_LOG.md`.
 5. Lee `docs/model_assumptions.md`.
 6. Inspecciona `src/galaxy_discriminants/models/base.py`.
-7. Inspecciona `src/galaxy_discriminants/validation.py`.
-8. Inspecciona `src/galaxy_discriminants/models/placeholders.py`.
-9. Inspecciona `src/galaxy_discriminants/pipeline.py`.
+7. Inspecciona `src/galaxy_discriminants/models/baryonic.py`.
+8. Inspecciona `src/galaxy_discriminants/validation.py`.
+9. Inspecciona `src/galaxy_discriminants/models/placeholders.py`.
 10. Revisa los tests existentes.
 
 No asumas que el repo está vacío.
 
-No borres ni reescribas la implementación v0.1/v0.2a.
+No borres ni reescribas la implementación anterior.
 
 No cambies la arquitectura sin justificarlo.
 
-## Alcance exacto de v0.2b-1
+## Alcance exacto de v0.2b-2
 
-Implementar un modelo bariónico/newtoniano mínimo que combine contribuciones de velocidad precomputadas.
+Implementar utilidades de conversión entre velocidades circulares, radios y aceleraciones.
 
-El modelo debe representar una operación básica:
+Este patch debe permitir calcular:
 
 ```text
-v_bar(r) = sqrt(v_component_1(r)^2 + v_component_2(r)^2 + ...)
+g = v^2 / r
 ```
 
-Este modelo no debe derivar velocidades desde masa, luminosidad, fotometría, potencial gravitatorio ni datos reales.
+usando entradas en:
 
-Debe aceptar componentes ya precomputadas, por ejemplo:
+* radio: kpc;
+* velocidad: km/s;
 
-* gas;
-* disk;
-* bulge;
-* stellar_disk;
-* stellar_bulge;
-* u otros nombres explícitos.
+y salida en:
 
-La elección exacta de nombres debe ser flexible, pero las unidades deben estar documentadas como km/s.
+* aceleración: m/s².
+
+También debe permitir la conversión inversa:
+
+```text
+v = sqrt(g * r)
+```
+
+usando:
+
+* aceleración: m/s²;
+* radio: kpc;
+
+y salida en:
+
+* velocidad: km/s.
+
+Este patch prepara el terreno para MOND/RAR, pero no implementa todavía el modelo MOND/RAR completo.
 
 ## Qué debes implementar
 
-### 1. Modelo bariónico mínimo
+### 1. Constantes de unidades
 
-Crear un archivo nuevo sugerido:
+Crear un módulo sugerido:
 
 ```text
-src/galaxy_discriminants/models/baryonic.py
+src/galaxy_discriminants/units.py
 ```
 
-Implementar una clase similar a:
+Debe incluir constantes explícitas, por ejemplo:
 
 ```text
-BaryonicRotationModel
+KILOMETER_IN_METERS
+KPC_IN_METERS
+```
+
+Puedes agregar otras constantes si son necesarias.
+
+Requisitos:
+
+* Nombres claros.
+* Sin dependencias nuevas.
+* Documentar que las unidades internas del proyecto son kpc, km/s y m/s² para aceleraciones.
+* No introducir `astropy` todavía.
+
+### 2. Utilidades de aceleración
+
+Crear un módulo sugerido:
+
+```text
+src/galaxy_discriminants/physics.py
+```
+
+o
+
+```text
+src/galaxy_discriminants/acceleration.py
+```
+
+Elegir una ubicación clara y justificarla en el summary.
+
+Implementar funciones similares a:
+
+```text
+circular_velocity_to_acceleration_m_s2(radius_kpc, velocity_kms)
+
+acceleration_to_circular_velocity_kms(radius_kpc, acceleration_m_s2)
 ```
 
 Requisitos:
 
-* Debe implementar `RotationCurveModel`.
-* Debe devolver `ModelPrediction`.
-* Debe tener `name` legible.
-* Debe marcarse como modelo físico inicial o físico simplificado según la semántica existente de `is_physical`.
-* Debe recibir contribuciones bariónicas de velocidad precomputadas.
-* Debe combinar componentes mediante suma cuadrática.
-* Debe validar radios y velocidades.
-* Debe rechazar arrays con shapes incompatibles.
-* Debe rechazar radios inválidos.
-* Debe rechazar velocidades no finitas.
-* Debe rechazar velocidades negativas salvo que exista una justificación documentada. Para este patch, preferir no aceptar velocidades negativas.
-* Debe documentar que no deriva masas ni fotometría.
+* Validar radios con las utilidades existentes.
+* Validar velocidades con las utilidades existentes.
+* Validar aceleraciones:
 
-Una API posible, no obligatoria:
+  * arrays unidimensionales;
+  * no vacíos;
+  * valores finitos;
+  * valores no negativos.
+* Validar compatibilidad de shapes.
+* Aceptar arrays NumPy y listas convertibles a arrays.
+* Devolver arrays NumPy.
+* No mutar entradas.
+* Mantener precisión numérica razonable.
 
-```text
-model = BaryonicRotationModel(
-    components={
-        "gas": gas_velocity_kms,
-        "disk": disk_velocity_kms,
-        "bulge": bulge_velocity_kms,
-    }
-)
+### 3. Validación de aceleraciones
 
-prediction = model.predict(radius_kpc)
-```
-
-Otra API aceptable:
+Extender `src/galaxy_discriminants/validation.py` con una función nueva, por ejemplo:
 
 ```text
-model = BaryonicRotationModel.from_components(...)
+validate_acceleration_m_s2(...)
 ```
-
-Elige la opción más simple y coherente con la arquitectura actual. Explica la decisión en el summary.
-
-### 2. Escalado opcional de componentes
-
-Puedes implementar factores de escala simples para componentes si se mantiene claro y testeable.
-
-Ejemplo conceptual:
-
-```text
-v_bar = sqrt(
-    gas_scale * v_gas^2 +
-    disk_scale * v_disk^2 +
-    bulge_scale * v_bulge^2
-)
-```
-
-Reglas:
-
-* Los factores deben ser positivos.
-* El valor por defecto debe ser 1.0.
-* Deben estar documentados como factores numéricos simplificados.
-* No deben presentarse como ajuste físico real ni como masa-luz calibrada.
-* No implementar fitting de estos factores.
-
-Si esto complica demasiado el patch, puedes omitir escalado y dejarlo como extensión futura. Explica la decisión.
-
-### 3. Datos mock bariónicos
-
-Extender los datos mock o agregar una utilidad separada para crear contribuciones bariónicas sintéticas.
-
-Opciones aceptables:
-
-* agregar campos opcionales a `MockGalaxy`;
-* crear una función nueva que genere componentes bariónicas sintéticas;
-* crear tests con arrays manuales sin modificar demasiado `MockGalaxy`.
 
 Requisitos:
 
-* No romper el pipeline v0.1.
-* No hacer que todos los datos mock dependan obligatoriamente de componentes bariónicas.
-* Marcar todo como sintético/mock.
-* No asociar estos datos con SPARC ni galaxias reales.
+* Debe validar arrays unidimensionales.
+* Debe rechazar arrays vacíos.
+* Debe rechazar valores no finitos.
+* Debe rechazar valores negativos.
+* Debe devolver una copia validada o array seguro consistente con el estilo actual.
+* Debe estar testeada.
 
-Preferencia: mantener los componentes bariónicos como utilidad separada o como campos opcionales para evitar sobrecargar `MockGalaxy`.
+No duplicar lógica innecesariamente.
 
-### 4. Exportación pública
+### 4. Integración opcional con BaryonicRotationModel
 
-Actualizar:
+Si es simple y no aumenta demasiado el alcance, agregar una utilidad o método que permita obtener aceleración bariónica a partir de la predicción del modelo bariónico.
+
+Ejemplo aceptable:
 
 ```text
-src/galaxy_discriminants/models/__init__.py
+baryonic_prediction = model.predict(radius_kpc)
+g_bar = circular_velocity_to_acceleration_m_s2(
+    baryonic_prediction.radius_kpc,
+    baryonic_prediction.velocity_kms,
+)
 ```
 
-para exportar el nuevo modelo bariónico si corresponde.
+No es obligatorio agregar un método al modelo. De hecho, puede ser preferible mantenerlo como función externa para conservar separación de responsabilidades.
 
-No eliminar exports existentes.
+No integrar esto al pipeline principal todavía salvo que sea extremadamente simple y no rompa nada.
 
 ### 5. Documentación
 
@@ -205,58 +225,53 @@ Actualizar:
 docs/model_assumptions.md
 ```
 
-Debe incluir una sección para el modelo bariónico/newtoniano mínimo.
+Debe explicar:
 
-Debe aclarar:
+* unidades internas;
+* conversión de velocidad circular a aceleración;
+* conversión inversa;
+* por qué esta capa prepara MOND/RAR;
+* que no se implementa todavía MOND/RAR como modelo físico;
+* que la elección de función de interpolación MOND/RAR sigue pendiente de verificación;
+* que la constante de aceleración característica de MOND/RAR queda pendiente para el patch futuro.
 
-* usa radios en kpc;
-* usa velocidades en km/s;
-* combina contribuciones precomputadas mediante suma cuadrática;
-* no deriva masas;
-* no deriva luminosidades;
-* no calcula potenciales gravitatorios;
-* no usa datos reales;
-* no representa todavía una comparación científica completa;
-* factores de escala, si existen, no son fitting físico en este patch.
-
-Actualizar `README.md` solo si hace falta para reflejar que v0.2b-1 existe como modelo inicial, sin prometer resultados científicos.
+Actualizar `README.md` solo si hace falta reflejar el estado `v0.2b-2`.
 
 ### 6. Tests
 
-Agregar tests nuevos para el modelo bariónico.
+Agregar tests nuevos para las utilidades de aceleración.
 
 Archivo sugerido:
 
 ```text
-tests/test_baryonic_model.py
+tests/test_acceleration.py
 ```
 
 Debe cubrir:
 
-* predicción con un solo componente;
-* predicción con varios componentes;
-* resultado esperado de suma cuadrática;
-* shapes correctos;
-* nombre del modelo;
-* indicador `is_physical`;
-* unidades de `ModelPrediction`;
+* conversión velocidad → aceleración con valores simples;
+* conversión aceleración → velocidad;
+* round-trip aproximado:
+
+  * velocidad → aceleración → velocidad;
 * rechazo de radios inválidos;
 * rechazo de velocidades negativas;
+* rechazo de aceleraciones negativas;
+* rechazo de valores no finitos;
 * rechazo de shapes incompatibles;
-* rechazo de componentes vacías;
-* compatibilidad con arrays numpy;
-* que el pipeline v0.1 siga funcionando.
+* compatibilidad con listas y arrays NumPy;
+* que las entradas no sean mutadas.
 
-Ejemplo matemático simple para test:
+Ejemplo de test conceptual:
 
 ```text
-gas = [3, 4]
-disk = [4, 3]
+radius_kpc = [1.0]
+velocity_kms = [1.0]
 
-v_bar = sqrt(gas^2 + disk^2) = [5, 5]
+g = (1000 m/s)^2 / (1 kpc en metros)
 ```
 
-Si implementas factores de escala, agregar tests específicos.
+No hardcodear constantes de forma opaca. Usar las constantes definidas por el proyecto para construir el valor esperado.
 
 ### 7. Mantener compatibilidad
 
@@ -266,15 +281,19 @@ El pipeline existente debe seguir funcionando:
 uv run python -m galaxy_discriminants.pipeline
 ```
 
-No es obligatorio integrar el modelo bariónico al pipeline mock principal en este patch, salvo que pueda hacerse sin aumentar complejidad.
+No modificar el pipeline salvo necesidad clara.
 
-Preferencia: mantener pipeline v0.1 estable y testear el nuevo modelo por separado.
+No romper `BaryonicRotationModel`.
+
+No romper stubs existentes.
 
 ## Restricciones científicas
 
 No implementar todavía:
 
-* MOND/RAR real;
+* MOND/RAR real como modelo;
+* función de interpolación MOND/RAR;
+* constante MOND/RAR definitiva;
 * NFW real;
 * Burkert real;
 * Einasto;
@@ -290,11 +309,11 @@ No implementar todavía:
 * simulaciones N-body;
 * IA/ML.
 
-No afirmar que el modelo bariónico explica curvas reales.
+No afirmar que estas utilidades validan MOND/RAR.
 
-No afirmar que este modelo compara teorías físicas.
+No afirmar que el proyecto explica curvas reales.
 
-No inventar fórmulas avanzadas ni referencias.
+No inventar referencias ni fórmulas avanzadas.
 
 Si algo requiere verificación científica, marcarlo como:
 
@@ -321,15 +340,17 @@ Pendiente de verificación
 
 El patch es aceptable si:
 
-* [ ] Existe `BaryonicRotationModel` o equivalente.
-* [ ] El modelo implementa `RotationCurveModel`.
-* [ ] El modelo devuelve `ModelPrediction`.
-* [ ] La predicción combina componentes mediante suma cuadrática.
-* [ ] Las unidades internas siguen siendo kpc y km/s.
-* [ ] Hay tests para uno y varios componentes.
-* [ ] Hay tests para validaciones de errores.
+* [ ] Existen constantes de unidad explícitas.
+* [ ] Existe conversión velocidad circular → aceleración.
+* [ ] Existe conversión aceleración → velocidad circular.
+* [ ] Existe validación de aceleraciones.
+* [ ] Hay tests de conversión directa.
+* [ ] Hay tests de conversión inversa.
+* [ ] Hay tests de round-trip aproximado.
+* [ ] Hay tests de errores por radios, velocidades, aceleraciones y shapes inválidos.
 * [ ] El pipeline v0.1 sigue funcionando.
-* [ ] MOND/RAR, NFW y Burkert siguen siendo stubs no implementados.
+* [ ] `BaryonicRotationModel` sigue funcionando.
+* [ ] MOND/RAR, NFW y Burkert siguen sin implementación física real.
 * [ ] No se introduce fitting.
 * [ ] No se introduce dataset real.
 * [ ] No se agregan dependencias innecesarias.
@@ -376,7 +397,7 @@ Lista de archivos creados o modificados.
 
 ### Qué implementaste
 
-Explica cómo funciona el modelo bariónico/newtoniano mínimo.
+Explica cómo funcionan las utilidades de aceleración y conversiones de unidades.
 
 ### Qué NO implementaste
 
@@ -400,11 +421,10 @@ Aclara si usaste comandos normales o `--no-sync`.
 
 Explica decisiones de arquitectura:
 
-* API del modelo bariónico;
-* tratamiento de componentes;
-* si implementaste o no factores de escala;
-* validaciones agregadas;
-* documentación actualizada.
+* ubicación de constantes;
+* ubicación de utilidades de aceleración;
+* diseño de validación de aceleraciones;
+* si integraste o no estas utilidades con `BaryonicRotationModel`.
 
 ### Riesgos o pendientes
 
@@ -414,11 +434,11 @@ Indica qué queda pendiente para próximos patches.
 
 Sugerir uno de estos pasos, pero no implementarlo:
 
-* `v0.2b-2 — MOND/RAR simple`;
-* o `v0.2b-2 — preparación de aceleraciones bariónicas para MOND/RAR`.
+* `v0.2b-3 — MOND/RAR simple`;
+* o `v0.2b-3 — documentación y selección explícita de función MOND/RAR`.
 
 ## Importante
 
-No avances más allá de v0.2b-1.
+No avances más allá de v0.2b-2.
 
-Este patch debe implementar solo el modelo bariónico/newtoniano mínimo sobre contribuciones precomputadas, sin introducir todavía modelos alternativos ni fitting.
+Este patch debe preparar la capa de aceleraciones necesaria para MOND/RAR sin implementar todavía MOND/RAR como modelo físico.
