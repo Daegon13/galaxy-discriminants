@@ -1,4 +1,4 @@
-# Codex Task Prompt — v0.2b-2 Utilidades de aceleración bariónica y preparación MOND/RAR
+# Codex Task Prompt — v0.2b-3 Selección documentada de formulación MOND/RAR
 
 ## Rol
 
@@ -6,11 +6,11 @@ Actúa como ingeniero de software científico trabajando sobre el repositorio `g
 
 Tu tarea es implementar únicamente el patch:
 
-`v0.2b-2 — Utilidades de aceleración bariónica y preparación MOND/RAR`
+`v0.2b-3 — Selección documentada de formulación MOND/RAR`
 
-Este patch debe preparar la base matemática y técnica para implementar MOND/RAR en un patch posterior.
+Este patch es principalmente documental y de diseño científico-técnico.
 
-No debes implementar todavía un modelo MOND/RAR completo como `RotationCurveModel`.
+No debes implementar todavía un modelo MOND/RAR ejecutable como `RotationCurveModel`.
 
 No debes implementar halos NFW, Burkert, fitting, ranking discriminante ni datasets reales.
 
@@ -39,9 +39,9 @@ Ya implementó:
 
 * `ModelPrediction`;
 * interfaz extensible `RotationCurveModel`;
-* validaciones reutilizables en `galaxy_discriminants.validation`;
+* validaciones reutilizables;
 * stubs nominales para MOND/RAR, NFW y Burkert;
-* documentación de unidades y supuestos en `docs/model_assumptions.md`;
+* documentación de unidades y supuestos;
 * compatibilidad del pipeline v0.1;
 * tests ampliados.
 
@@ -55,7 +55,17 @@ Ya implementó:
 * tests del modelo bariónico;
 * documentación de límites y supuestos.
 
-Este patch debe continuar sobre esa base sin romper compatibilidad.
+### v0.2b-2
+
+Ya implementó:
+
+* constantes de unidades en `units.py`;
+* conversiones entre velocidad circular y aceleración;
+* validación de aceleraciones;
+* tests de conversión, round-trip y no mutación;
+* documentación de la capa de aceleraciones.
+
+Este patch debe preparar la implementación futura de MOND/RAR de forma científica y auditable.
 
 ## Instrucciones generales
 
@@ -66,158 +76,174 @@ Antes de modificar archivos:
 3. Lee `PATCH_ROADMAP.md`.
 4. Lee `DECISIONS_LOG.md`.
 5. Lee `docs/model_assumptions.md`.
-6. Inspecciona `src/galaxy_discriminants/models/base.py`.
-7. Inspecciona `src/galaxy_discriminants/models/baryonic.py`.
-8. Inspecciona `src/galaxy_discriminants/validation.py`.
+6. Inspecciona `src/galaxy_discriminants/units.py`.
+7. Inspecciona `src/galaxy_discriminants/acceleration.py`.
+8. Inspecciona `src/galaxy_discriminants/models/baryonic.py`.
 9. Inspecciona `src/galaxy_discriminants/models/placeholders.py`.
 10. Revisa los tests existentes.
 
 No asumas que el repo está vacío.
 
-No borres ni reescribas la implementación anterior.
+No borres ni reescribas implementaciones anteriores.
 
-No cambies la arquitectura sin justificarlo.
+No cambies arquitectura sin justificarlo.
 
-## Alcance exacto de v0.2b-2
+## Alcance exacto de v0.2b-3
 
-Implementar utilidades de conversión entre velocidades circulares, radios y aceleraciones.
+Crear documentación y registro de decisión para la primera formulación MOND/RAR que se implementará en un patch posterior.
 
-Este patch debe permitir calcular:
+Este patch debe responder:
 
-```text
-g = v^2 / r
-```
-
-usando entradas en:
-
-* radio: kpc;
-* velocidad: km/s;
-
-y salida en:
-
-* aceleración: m/s².
-
-También debe permitir la conversión inversa:
-
-```text
-v = sqrt(g * r)
-```
-
-usando:
-
-* aceleración: m/s²;
-* radio: kpc;
-
-y salida en:
-
-* velocidad: km/s.
-
-Este patch prepara el terreno para MOND/RAR, pero no implementa todavía el modelo MOND/RAR completo.
+1. Qué formulación se implementará primero.
+2. Qué entradas tendrá.
+3. Qué salidas tendrá.
+4. Qué constante de aceleración se usará como default inicial.
+5. Qué unidades se usarán.
+6. Qué límites científicos tiene.
+7. Qué tests deberá tener el patch de implementación.
+8. Qué queda pendiente de verificación.
 
 ## Qué debes implementar
 
-### 1. Constantes de unidades
+### 1. Crear documento de diseño MOND/RAR
 
-Crear un módulo sugerido:
-
-```text
-src/galaxy_discriminants/units.py
-```
-
-Debe incluir constantes explícitas, por ejemplo:
+Crear un archivo:
 
 ```text
-KILOMETER_IN_METERS
-KPC_IN_METERS
+docs/mond_rar_design.md
 ```
 
-Puedes agregar otras constantes si son necesarias.
+Debe estar en español técnico claro.
 
-Requisitos:
-
-* Nombres claros.
-* Sin dependencias nuevas.
-* Documentar que las unidades internas del proyecto son kpc, km/s y m/s² para aceleraciones.
-* No introducir `astropy` todavía.
-
-### 2. Utilidades de aceleración
-
-Crear un módulo sugerido:
+Debe incluir:
 
 ```text
-src/galaxy_discriminants/physics.py
+# MOND/RAR Design Notes
 ```
 
-o
+Secciones mínimas:
+
+* Propósito del documento.
+* Contexto dentro del proyecto.
+* Definiciones:
+
+  * `g_bar`;
+  * `g_obs`;
+  * `g_dagger` o constante característica;
+  * radio en kpc;
+  * velocidad en km/s;
+  * aceleración en m/s².
+* Formulación seleccionada para primera implementación.
+* Formulaciones consideradas.
+* Motivo de selección.
+* Entradas esperadas.
+* Salidas esperadas.
+* Tests esperados para la implementación futura.
+* Riesgos.
+* Pendientes de verificación.
+* Qué NO se implementa todavía.
+
+### 2. Seleccionar primera formulación
+
+Seleccionar como primera formulación implementable una relación empírica RAR simple:
 
 ```text
-src/galaxy_discriminants/acceleration.py
+g_model = g_bar / (1 - exp(-sqrt(g_bar / g_dagger)))
 ```
 
-Elegir una ubicación clara y justificarla en el summary.
-
-Implementar funciones similares a:
+Donde:
 
 ```text
-circular_velocity_to_acceleration_m_s2(radius_kpc, velocity_kms)
-
-acceleration_to_circular_velocity_kms(radius_kpc, acceleration_m_s2)
+g_bar > 0
+g_dagger > 0
 ```
 
-Requisitos:
+Decisión tomada:
 
-* Validar radios con las utilidades existentes.
-* Validar velocidades con las utilidades existentes.
-* Validar aceleraciones:
+* Esta será tratada como una formulación empírica RAR inicial.
+* No debe presentarse como prueba de MOND.
+* No debe presentarse como verificación científica.
+* No debe presentarse como modelo final.
+* Se usará solo como primera relación aceleración-bariónica para pruebas controladas.
 
-  * arrays unidimensionales;
-  * no vacíos;
-  * valores finitos;
-  * valores no negativos.
-* Validar compatibilidad de shapes.
-* Aceptar arrays NumPy y listas convertibles a arrays.
-* Devolver arrays NumPy.
-* No mutar entradas.
-* Mantener precisión numérica razonable.
+Debe quedar documentado que esta formulación reproduce comportamientos esperados de transición:
 
-### 3. Validación de aceleraciones
+* régimen de alta aceleración: comportamiento cercano a `g_model ≈ g_bar`;
+* régimen de baja aceleración: comportamiento cercano a `g_model ≈ sqrt(g_bar * g_dagger)`.
 
-Extender `src/galaxy_discriminants/validation.py` con una función nueva, por ejemplo:
+No implementar esta fórmula en código todavía. Solo documentarla.
+
+### 3. Constante característica
+
+Documentar como default inicial pendiente de revisión:
 
 ```text
-validate_acceleration_m_s2(...)
+g_dagger = 1.2e-10 m/s²
 ```
 
-Requisitos:
+Reglas:
 
-* Debe validar arrays unidimensionales.
-* Debe rechazar arrays vacíos.
-* Debe rechazar valores no finitos.
-* Debe rechazar valores negativos.
-* Debe devolver una copia validada o array seguro consistente con el estilo actual.
-* Debe estar testeada.
+* Debe marcarse explícitamente como valor inicial de trabajo.
+* Debe marcarse como pendiente de verificación científica.
+* Debe quedar claro que puede cambiar cuando se revisen papers/datasets.
+* No convertirlo todavía en constante de código si eso implica semántica científica prematura.
 
-No duplicar lógica innecesariamente.
+Puedes agregar una sección en `docs/model_assumptions.md` que apunte a `docs/mond_rar_design.md`.
 
-### 4. Integración opcional con BaryonicRotationModel
+### 4. Formulaciones consideradas
 
-Si es simple y no aumenta demasiado el alcance, agregar una utilidad o método que permita obtener aceleración bariónica a partir de la predicción del modelo bariónico.
+Documentar al menos estas opciones:
 
-Ejemplo aceptable:
+#### Opción A — RAR empírica seleccionada
 
 ```text
-baryonic_prediction = model.predict(radius_kpc)
-g_bar = circular_velocity_to_acceleration_m_s2(
-    baryonic_prediction.radius_kpc,
-    baryonic_prediction.velocity_kms,
-)
+g_model = g_bar / (1 - exp(-sqrt(g_bar / g_dagger)))
 ```
 
-No es obligatorio agregar un método al modelo. De hecho, puede ser preferible mantenerlo como función externa para conservar separación de responsabilidades.
+Ventajas:
 
-No integrar esto al pipeline principal todavía salvo que sea extremadamente simple y no rompa nada.
+* Trabaja directamente con `g_bar`.
+* Encaja bien con la capa `acceleration.py`.
+* Puede convertirse luego a velocidad circular con la función inversa ya implementada.
+* Es simple de testear.
 
-### 5. Documentación
+Riesgos:
+
+* Es una relación empírica.
+* Requiere cuidado en `g_bar = 0`.
+* Requiere documentar el valor de `g_dagger`.
+
+#### Opción B — MOND con función de interpolación simple
+
+Documentar como alternativa futura.
+
+No implementarla todavía.
+
+#### Opción C — MOND con función estándar
+
+Documentar como alternativa futura.
+
+No implementarla todavía.
+
+### 5. Tests esperados para implementación futura
+
+Documentar los tests que deberá tener `v0.2b-4`.
+
+Debe incluir:
+
+* validación de `g_bar`;
+* validación de `g_dagger`;
+* comportamiento en alta aceleración;
+* comportamiento en baja aceleración;
+* conversión de aceleración modelada a velocidad;
+* compatibilidad con `BaryonicRotationModel`;
+* rechazo de aceleraciones negativas;
+* rechazo de valores no finitos;
+* estabilidad numérica cerca de cero;
+* no mutación de entradas;
+* mantenimiento de stubs NFW/Burkert sin cambios.
+
+### 6. Actualizar documentación existente
 
 Actualizar:
 
@@ -225,75 +251,46 @@ Actualizar:
 docs/model_assumptions.md
 ```
 
-Debe explicar:
+Agregar una sección breve que indique:
 
-* unidades internas;
-* conversión de velocidad circular a aceleración;
-* conversión inversa;
-* por qué esta capa prepara MOND/RAR;
-* que no se implementa todavía MOND/RAR como modelo físico;
-* que la elección de función de interpolación MOND/RAR sigue pendiente de verificación;
-* que la constante de aceleración característica de MOND/RAR queda pendiente para el patch futuro.
+* se agregó `docs/mond_rar_design.md`;
+* la primera formulación seleccionada será RAR empírica;
+* MOND/RAR aún no está implementado como modelo;
+* `g_dagger` queda como valor inicial pendiente de verificación científica.
 
-Actualizar `README.md` solo si hace falta reflejar el estado `v0.2b-2`.
-
-### 6. Tests
-
-Agregar tests nuevos para las utilidades de aceleración.
-
-Archivo sugerido:
+Actualizar:
 
 ```text
-tests/test_acceleration.py
+README.md
 ```
 
-Debe cubrir:
+solo si hace falta reflejar que el proyecto está en estado `v0.2b-3`.
 
-* conversión velocidad → aceleración con valores simples;
-* conversión aceleración → velocidad;
-* round-trip aproximado:
+### 7. Actualizar Decisions Log
 
-  * velocidad → aceleración → velocidad;
-* rechazo de radios inválidos;
-* rechazo de velocidades negativas;
-* rechazo de aceleraciones negativas;
-* rechazo de valores no finitos;
-* rechazo de shapes incompatibles;
-* compatibilidad con listas y arrays NumPy;
-* que las entradas no sean mutadas.
-
-Ejemplo de test conceptual:
+Actualizar:
 
 ```text
-radius_kpc = [1.0]
-velocity_kms = [1.0]
-
-g = (1000 m/s)^2 / (1 kpc en metros)
+DECISIONS_LOG.md
 ```
 
-No hardcodear constantes de forma opaca. Usar las constantes definidas por el proyecto para construir el valor esperado.
+Agregar una o más decisiones nuevas:
 
-### 7. Mantener compatibilidad
+* seleccionar RAR empírica como primera formulación implementable;
+* mantener MOND/RAR sin implementación hasta el siguiente patch;
+* tratar `g_dagger = 1.2e-10 m/s²` como valor inicial pendiente de verificación;
+* documentar alternativas MOND simple/standard como extensiones futuras.
 
-El pipeline existente debe seguir funcionando:
-
-```powershell
-uv run python -m galaxy_discriminants.pipeline
-```
-
-No modificar el pipeline salvo necesidad clara.
-
-No romper `BaryonicRotationModel`.
-
-No romper stubs existentes.
+No borrar decisiones previas.
 
 ## Restricciones científicas
 
 No implementar todavía:
 
-* MOND/RAR real como modelo;
-* función de interpolación MOND/RAR;
-* constante MOND/RAR definitiva;
+* clase MOND/RAR real;
+* función ejecutable RAR;
+* función de interpolación MOND;
+* constante definitiva en código;
 * NFW real;
 * Burkert real;
 * Einasto;
@@ -309,13 +306,15 @@ No implementar todavía:
 * simulaciones N-body;
 * IA/ML.
 
-No afirmar que estas utilidades validan MOND/RAR.
+No afirmar que esta formulación prueba MOND.
 
-No afirmar que el proyecto explica curvas reales.
+No afirmar que esta formulación descarta materia oscura.
 
-No inventar referencias ni fórmulas avanzadas.
+No afirmar que el proyecto explica galaxias reales.
 
-Si algo requiere verificación científica, marcarlo como:
+No inventar referencias, DOIs, enlaces ni citas bibliográficas.
+
+Si no puedes verificar una fuente, marca:
 
 ```text
 Pendiente de verificación
@@ -327,8 +326,7 @@ Pendiente de verificación
 * Mantener `uv`.
 * No eliminar `uv.lock`.
 * No cambiar el nombre del paquete.
-* No agregar dependencias salvo necesidad estricta.
-* Si agregas una dependencia, justificarla.
+* No agregar dependencias.
 * No convertir el proyecto en app web.
 * No versionar outputs generados.
 * No tocar datasets reales.
@@ -340,22 +338,17 @@ Pendiente de verificación
 
 El patch es aceptable si:
 
-* [ ] Existen constantes de unidad explícitas.
-* [ ] Existe conversión velocidad circular → aceleración.
-* [ ] Existe conversión aceleración → velocidad circular.
-* [ ] Existe validación de aceleraciones.
-* [ ] Hay tests de conversión directa.
-* [ ] Hay tests de conversión inversa.
-* [ ] Hay tests de round-trip aproximado.
-* [ ] Hay tests de errores por radios, velocidades, aceleraciones y shapes inválidos.
-* [ ] El pipeline v0.1 sigue funcionando.
-* [ ] `BaryonicRotationModel` sigue funcionando.
-* [ ] MOND/RAR, NFW y Burkert siguen sin implementación física real.
-* [ ] No se introduce fitting.
-* [ ] No se introduce dataset real.
-* [ ] No se agregan dependencias innecesarias.
-* [ ] La documentación explica límites y supuestos.
-* [ ] Tests pasan.
+* [ ] Existe `docs/mond_rar_design.md`.
+* [ ] La formulación RAR empírica queda documentada.
+* [ ] Las alternativas MOND simple y standard quedan mencionadas como futuras.
+* [ ] `g_dagger = 1.2e-10 m/s²` queda marcado como valor inicial pendiente de verificación.
+* [ ] `docs/model_assumptions.md` enlaza o resume la decisión.
+* [ ] `DECISIONS_LOG.md` registra la decisión.
+* [ ] README se actualiza solo si corresponde.
+* [ ] MOND/RAR sigue sin implementación ejecutable.
+* [ ] NFW y Burkert siguen sin implementación física.
+* [ ] No se agregan dependencias.
+* [ ] Tests existentes siguen pasando.
 * [ ] Ruff pasa.
 * [ ] Mypy pasa si ya estaba funcionando.
 
@@ -397,13 +390,13 @@ Lista de archivos creados o modificados.
 
 ### Qué implementaste
 
-Explica cómo funcionan las utilidades de aceleración y conversiones de unidades.
+Explica la documentación y decisiones agregadas para MOND/RAR.
 
 ### Qué NO implementaste
 
 Confirma explícitamente que no implementaste:
 
-* MOND/RAR real;
+* MOND/RAR ejecutable;
 * NFW real;
 * Burkert real;
 * SPARC;
@@ -419,26 +412,29 @@ Aclara si usaste comandos normales o `--no-sync`.
 
 ### Decisiones tomadas
 
-Explica decisiones de arquitectura:
+Explica:
 
-* ubicación de constantes;
-* ubicación de utilidades de aceleración;
-* diseño de validación de aceleraciones;
-* si integraste o no estas utilidades con `BaryonicRotationModel`.
+* formulación seleccionada;
+* alternativas consideradas;
+* tratamiento de `g_dagger`;
+* por qué no se implementó todavía el modelo.
 
 ### Riesgos o pendientes
 
-Indica qué queda pendiente para próximos patches.
+Indica qué queda pendiente para `v0.2b-4`.
 
 ### Próximo paso sugerido
 
-Sugerir uno de estos pasos, pero no implementarlo:
+Sugerir:
 
-* `v0.2b-3 — MOND/RAR simple`;
-* o `v0.2b-3 — documentación y selección explícita de función MOND/RAR`.
+```text
+v0.2b-4 — Implementación de modelo RAR/MOND simple
+```
+
+pero no implementarlo.
 
 ## Importante
 
-No avances más allá de v0.2b-2.
+No avances más allá de v0.2b-3.
 
-Este patch debe preparar la capa de aceleraciones necesaria para MOND/RAR sin implementar todavía MOND/RAR como modelo físico.
+Este patch debe cerrar la decisión científica mínima para poder implementar MOND/RAR en el siguiente paso sin improvisar fórmulas en código.
