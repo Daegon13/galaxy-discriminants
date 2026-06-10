@@ -35,22 +35,35 @@ def validate_radius_kpc(
     return radius
 
 
+def _validate_non_negative_array(values: ArrayLike, *, name: str) -> FloatArray:
+    """Return a copied one-dimensional, finite, non-negative float array."""
+    array = np.array(values, dtype=np.float64, copy=True)
+    if array.ndim != 1:
+        msg = f"{name} must be a one-dimensional array"
+        raise ValueError(msg)
+    if array.size == 0:
+        msg = f"{name} must not be empty"
+        raise ValueError(msg)
+    if not np.all(np.isfinite(array)):
+        msg = f"{name} must contain only finite values"
+        raise ValueError(msg)
+    if np.any(array < 0):
+        msg = f"{name} must contain only non-negative values"
+        raise ValueError(msg)
+    return array
+
+
 def validate_velocity_kms(velocity_kms: ArrayLike) -> FloatArray:
-    """Return validated one-dimensional speeds expressed in kilometres/second."""
-    velocity = np.asarray(velocity_kms, dtype=np.float64)
-    if velocity.ndim != 1:
-        msg = "velocity_kms must be a one-dimensional array"
-        raise ValueError(msg)
-    if velocity.size == 0:
-        msg = "velocity_kms must not be empty"
-        raise ValueError(msg)
-    if not np.all(np.isfinite(velocity)):
-        msg = "velocity_kms must contain only finite values"
-        raise ValueError(msg)
-    if np.any(velocity < 0):
-        msg = "velocity_kms must contain only non-negative values"
-        raise ValueError(msg)
-    return velocity
+    """Return validated one-dimensional speeds in kilometres per second."""
+    return _validate_non_negative_array(velocity_kms, name="velocity_kms")
+
+
+def validate_acceleration_m_s2(acceleration_m_s2: ArrayLike) -> FloatArray:
+    """Return validated one-dimensional accelerations in metres per second²."""
+    return _validate_non_negative_array(
+        acceleration_m_s2,
+        name="acceleration_m_s2",
+    )
 
 
 def validate_rotation_curve_arrays(

@@ -44,6 +44,37 @@ La procedencia, interpretación, normalización y compatibilidad científica de 
 
 Los factores de escala o masa-luz podrán evaluarse en otro patch, con semántica física documentada y sin convertirlos implícitamente en fitting no auditado.
 
+## Capa de aceleraciones (v0.2b-2)
+
+### Decisión tomada
+
+- Las unidades internas de esta capa son `kpc` para radio, `km/s` para velocidad circular y `m/s²` para aceleración.
+- Las conversiones de unidad se centralizan en `galaxy_discriminants.units`, sin introducir `astropy` ni otra dependencia nueva.
+- La aceleración circular se calcula punto a punto mediante `g = v² / r`, convirtiendo antes la velocidad a `m/s` y el radio a metros.
+- La conversión inversa usa `v = sqrt(g * r)` y devuelve la velocidad en `km/s`.
+- Las utilidades aceptan radios positivos no necesariamente ordenados porque realizan una conversión punto a punto y no construyen por sí mismas una predicción de curva de rotación. Las predicciones de modelos mantienen el requisito existente de radios estrictamente crecientes.
+- La conversión desde una predicción bariónica se mantiene como composición externa: se pasan `prediction.radius_kpc` y `prediction.velocity_kms` a la utilidad correspondiente. No se agrega responsabilidad adicional a `BaryonicRotationModel`.
+
+### Supuesto
+
+Las velocidades de entrada representan velocidades circulares no negativas y los radios asociados están expresados en las unidades internas documentadas. La validez numérica y dimensional de los arreglos no garantiza por sí sola que una entrada sea científicamente apropiada.
+
+### Preparación para MOND/RAR
+
+Esta capa permite obtener una aceleración bariónica a partir de una curva de velocidad bariónica y volver de aceleración a velocidad circular. Es una infraestructura matemática necesaria para expresar una relación MOND/RAR futura en el espacio de aceleraciones, pero no implementa ni valida todavía un modelo físico MOND/RAR.
+
+### Pendiente de verificación
+
+- La función de interpolación o relación funcional MOND/RAR que se usará en un patch futuro.
+- El valor, las unidades y la convención de la constante de aceleración característica que requiera esa implementación futura.
+- La revisión científica de cualquier parametrización MOND/RAR antes de marcarla como implementación física.
+
+### Límites y riesgos
+
+- Estas conversiones son relaciones cinemáticas y de unidades; no ajustan parámetros ni explican curvas de rotación reales.
+- No se incorporan incertidumbres, covarianzas, factores masa-luz ni datos observacionales.
+- Valores extremos finitos podrían exceder el rango numérico de `float64`; el rango científicamente admisible deberá definirse cuando existan modelos y datos reales verificados.
+
 ## Pendiente de verificación
 
 - Las fórmulas, parametrizaciones, constantes y convenciones adicionales necesarias para derivar componentes bariónicas y para implementar MOND/RAR, NFW y Burkert.
@@ -51,7 +82,7 @@ Los factores de escala o masa-luz podrán evaluarse en otro patch, con semántic
 - Las convenciones de unidades al incorporar fuentes externas y las transformaciones necesarias hacia las unidades internas.
 - La disponibilidad, formato, licencia y condiciones de uso de SPARC y BIG-SPARC.
 
-MOND/RAR, NFW y Burkert no tienen implementación física en v0.2a. Sus clases nominales son *stubs*: validan los radios y lanzan `NotImplementedError` en lugar de producir predicciones falsas.
+MOND/RAR, NFW y Burkert no tienen implementación física en v0.2b-2. Sus clases nominales son *stubs*: validan los radios y lanzan `NotImplementedError` en lugar de producir predicciones falsas.
 
 ## Riesgos
 
@@ -61,4 +92,4 @@ MOND/RAR, NFW y Burkert no tienen implementación física en v0.2a. Sus clases n
 
 ## Extensión futura
 
-`v0.2b-2` podrá preparar aceleraciones bariónicas o implementar un MOND/RAR simple después de revisión científica. NFW y Burkert deben permanecer como stubs hasta sus patches correspondientes.
+`v0.2b-3` podrá seleccionar y documentar una formulación MOND/RAR simple después de revisión científica. NFW y Burkert deben permanecer como stubs hasta sus patches correspondientes.
