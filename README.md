@@ -16,7 +16,7 @@ El repositorio ya fue inicializado como paquete Python reproducible con:
 - `pyproject.toml`
 - `uv.lock`
 
-La implementación actual corresponde a `v0.2b-1 — Modelo bariónico/newtoniano mínimo`. Conserva el pipeline mock de v0.1 y agrega un baseline físico simplificado que combina contribuciones de velocidad precomputadas, sin derivar masas, fotometría ni potenciales gravitatorios.
+La implementación actual corresponde a `v0.2b-2 — Utilidades de aceleración bariónica y preparación MOND/RAR`. Conserva el pipeline mock y el baseline bariónico previo, y agrega conversiones validadas entre radio, velocidad circular y aceleración sin implementar todavía un modelo físico MOND/RAR.
 
 ## Objetivo
 
@@ -40,7 +40,7 @@ SPARC y otros catálogos reales se tratan como candidatos futuros. Su disponibil
 
 ## Alcance actual
 
-En `v0.2b-1`, el proyecto incluye:
+En `v0.2b-2`, el proyecto incluye:
 
 - datos mock claramente marcados y reproducibles;
 - pipeline ejecutable, exportación y visualización de v0.1;
@@ -48,10 +48,11 @@ En `v0.2b-1`, el proyecto incluye:
 - predicciones validadas con radios en `kpc` y velocidades en `km/s`;
 - validaciones básicas para arreglos científicos;
 - un modelo bariónico/newtoniano mínimo que combina componentes precomputadas en suma cuadrática;
+- constantes explícitas de conversión y utilidades validadas entre `kpc`, `km/s` y `m/s²`;
 - stubs nominales de MOND/RAR, NFW y Burkert que lanzan `NotImplementedError`;
 - tests de interfaz, validación, placeholders y compatibilidad del pipeline.
 
-En `v0.2b-1`, el proyecto todavía no incluye:
+En `v0.2b-2`, el proyecto todavía no incluye:
 
 - descarga o uso de datasets reales como SPARC o BIG-SPARC;
 - análisis científico real;
