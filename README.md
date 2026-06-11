@@ -16,7 +16,7 @@ El repositorio ya fue inicializado como paquete Python reproducible con:
 - `pyproject.toml`
 - `uv.lock`
 
-La implementación actual corresponde a `v0.2b-2 — Utilidades de aceleración bariónica y preparación MOND/RAR`. Conserva el pipeline mock y el baseline bariónico previo, y agrega conversiones validadas entre radio, velocidad circular y aceleración sin implementar todavía un modelo físico MOND/RAR.
+La implementación actual corresponde a `v0.2b-3 — Selección documentada de formulación MOND/RAR`. Conserva el pipeline mock, el baseline bariónico y la capa de aceleraciones, y documenta la relación empírica RAR elegida para un patch posterior sin implementar todavía un modelo MOND/RAR ejecutable.
 
 ## Objetivo
 
@@ -31,7 +31,7 @@ El objetivo no es resolver el problema de la materia oscura ni proponer una nuev
 El proyecto apunta a comparar familias de modelos como:
 
 - modelo bariónico/newtoniano base;
-- MOND/RAR con función de interpolación simple;
+- MOND/RAR, comenzando por una relación empírica RAR documentada;
 - halo NFW;
 - halo Burkert;
 - modelos futuros como Einasto o híbridos simplificados.
@@ -40,7 +40,7 @@ SPARC y otros catálogos reales se tratan como candidatos futuros. Su disponibil
 
 ## Alcance actual
 
-En `v0.2b-2`, el proyecto incluye:
+En `v0.2b-3`, el proyecto incluye:
 
 - datos mock claramente marcados y reproducibles;
 - pipeline ejecutable, exportación y visualización de v0.1;
@@ -49,10 +49,11 @@ En `v0.2b-2`, el proyecto incluye:
 - validaciones básicas para arreglos científicos;
 - un modelo bariónico/newtoniano mínimo que combina componentes precomputadas en suma cuadrática;
 - constantes explícitas de conversión y utilidades validadas entre `kpc`, `km/s` y `m/s²`;
+- notas de diseño para la relación empírica RAR seleccionada, sus unidades, límites, riesgos y tests futuros;
 - stubs nominales de MOND/RAR, NFW y Burkert que lanzan `NotImplementedError`;
 - tests de interfaz, validación, placeholders y compatibilidad del pipeline.
 
-En `v0.2b-2`, el proyecto todavía no incluye:
+En `v0.2b-3`, el proyecto todavía no incluye:
 
 - descarga o uso de datasets reales como SPARC o BIG-SPARC;
 - análisis científico real;
@@ -138,6 +139,7 @@ galaxy-discriminants/
 
 - `PROJECT_MASTERPLAN.md`: visión científica, técnica y metodológica.
 - `docs/model_assumptions.md`: supuestos de unidades, validación e infraestructura de modelos.
+- `docs/mond_rar_design.md`: decisión de formulación RAR, límites científicos y contrato previsto para su implementación futura.
 - `PATCH_ROADMAP.md`: roadmap por versiones incrementales.
 - `CODEX_TASK_PROMPT.md`: prompt activo para Codex.
 - `DECISIONS_LOG.md`: decisiones tomadas y pendientes de verificación.
