@@ -75,6 +75,22 @@ Esta capa permite obtener una aceleración bariónica a partir de una curva de v
 - No se incorporan incertidumbres, covarianzas, factores masa-luz ni datos observacionales.
 - Valores extremos finitos podrían exceder el rango numérico de `float64`; el rango científicamente admisible deberá definirse cuando existan modelos y datos reales verificados.
 
+## Selección de formulación MOND/RAR (v0.2b-3)
+
+### Decisión tomada
+
+- Se agregó [`docs/mond_rar_design.md`](mond_rar_design.md) como documento auditable para la primera formulación MOND/RAR futura.
+- La primera formulación seleccionada es una relación empírica RAR que transforma `g_bar` en `g_model`; su ecuación, dominio, entradas, salidas, límites y tests esperados están documentados en ese archivo.
+- MOND/RAR continúa sin implementación ejecutable como `RotationCurveModel`; el stub existente no se convierte todavía en modelo físico.
+
+### Pendiente de verificación científica
+
+`g_dagger = 1.2e-10 m/s²` se registra únicamente como valor inicial de trabajo. No es una constante definitiva del proyecto, no se añade al código en este patch y podrá cambiar después de revisar literatura, datasets y convenciones científicas.
+
+### Extensiones futuras
+
+Las formulaciones MOND con funciones de interpolación “simple” y “estándar” quedan documentadas como alternativas futuras, no implementadas y pendientes de verificar.
+
 ## Pendiente de verificación
 
 - Las fórmulas, parametrizaciones, constantes y convenciones adicionales necesarias para derivar componentes bariónicas y para implementar MOND/RAR, NFW y Burkert.
